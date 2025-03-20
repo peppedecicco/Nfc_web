@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bracciale NFC</title>
+<style>
+body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+.container { max-width: 400px; margin: auto; background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+.hidden { display: none; }
+input, button { margin: 10px; padding: 10px; width: 90%; border: 1px solid #ddd; border-radius: 5px; }
+button { background-color: #28a745; color: white; border: none; cursor: pointer; }
+button:hover { background-color: #218838; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2 id="title">Scansione Bracciale NFC</h2>
+
+<!-- Form per inserire dati la prima volta -->
+<div id="form">
+<input type="text" id="name" placeholder="Nome" required>
+<input type="text" id="surname" placeholder="Cognome" required>
+<input type="tel" id="phone" placeholder="Numero di telefono" required>
+<input type="password" id="pin" placeholder="Imposta un PIN" required>
+<button onclick="saveData()">Salva</button>
+</div>
+
+<!-- Area che mostra i dati salvati -->
+<div id="dataDisplay" class="hidden">
+<h3>Dati salvati:</h3>
+<p><strong>Nome:</strong> <span id="savedName"></span></p>
+<p><strong>Cognome:</strong> <span id="savedSurname"></span></p>
+<p><strong>Telefono:</strong> <span id="savedPhone"></span></p>
+<button onclick="requestPin()">Modifica</button>
+</div>
+
+<!-- Popup per richiedere il PIN prima di modificare -->
+<div id="pinRequest" class="hidden">
+<input type="password" id="pinCheck" placeholder="Inserisci PIN">
+<button onclick="checkPin()">Conferma</button>
+</div>
+</div>
+
+<script>
+// Controlla se ci sono dati già salvati nel browser
+function showData() {
+let data = localStorage.getItem("userData");
+if (data) {
+let userData = JSON.parse(data);
+document.getElementById("savedName").innerText = userData.name;
+document.getElementById("savedSurname").innerText = userData.surname;
+document.getElementById("savedPhone").innerText = userData.phone;
+
+document.getElementById("form").classList.add("hidden");
+document.getElementById("dataDisplay").classList.remove("hidden");
+document.getElementById("title").innerText = "Dati del Bracciale NFC";
+}
+}
+
+// Salva i dati e il PIN
+function saveData() {
+let name = document.getElementById("name").value;
+let surname = document.getElementById("surname").value;
+let phone = document.getElementById("phone").value;
+let pin = document.getElementById("pin").value;
+
+if (name && surname && phone && pin) {
+localStorage.setItem("userData", JSON.stringify({ name, surname, phone, pin }));
+showData();
+} else {
+alert("Compila tutti i campi!");
+}
+}
+
+// Chiede il PIN prima di modificare i dati
+function requestPin() {
+document.getElementById("pinRequest").classList.remove("hidden");
+}
+
+// Controlla il PIN prima di permettere la modifica
+function checkPin() {
+let enteredPin = document.getElementById("pinCheck").value;
+let data = localStorage.getItem("userData");
+if (data) {
+let userData = JSON.parse(data);
+if (enteredPin === userData.pin) {
+document.getElementById("pinRequest").classList.add("hidden");
+document.getElementById("dataDisplay").classList.add("hidden");
+document.getElementById("form").classList.remove("hidden");
+document.getElementById("title").innerText = "Modifica i tuoi dati";
+} else {
+alert("PIN errato!");
+}
+}
+}
+
+// Esegui al caricamento della pagina
+window.onload = showData;
+</script>
+
+</body>
+</html>
