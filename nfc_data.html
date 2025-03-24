@@ -3,115 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bracciale NFC V2</title>
+    <title>Bracciale NFC</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         .container { max-width: 400px; margin: auto; background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-        input, button { margin: 10px; padding: 10px; width: 90%; border: 1px solid #ddd; border-radius: 5px; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        p { font-size: 18px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2 id="title">Scansione Bracciale NFC</h2>
-
-        <!-- Form per inserire dati la prima volta -->
-        <div id="form">
-            <input type="text" id="name" placeholder="Nome" required>
-            <input type="text" id="surname" placeholder="Cognome" required>
-            <input type="tel" id="phone" placeholder="Numero di telefono" required>
-            <input type="password" id="pin" placeholder="Imposta un PIN" required>
-            <button onclick="writeNfcTag()">Salva sul Bracciale NFC</button>
-        </div>
-
-        <!-- Area che mostra i dati salvati -->
-        <div id="dataDisplay" class="hidden">
-            <h3>Dati salvati sul bracciale:</h3>
-            <p><strong>Nome:</strong> <span id="savedName"></span></p>
-            <p><strong>Cognome:</strong> <span id="savedSurname"></span></p>
-            <p><strong>Telefono:</strong> <span id="savedPhone"></span></p>
-            <button onclick="requestPin()">Modifica</button>
-        </div>
-
-        <!-- Popup per richiedere il PIN prima di modificare -->
-        <div id="pinRequest" class="hidden">
-            <input type="password" id="pinCheck" placeholder="Inserisci PIN">
-            <button onclick="checkPin()">Conferma</button>
-        </div>
+        <h2>Dati del Bracciale NFC</h2>
+        <p><strong>Nome:</strong> <span id="name"></span></p>
+        <p><strong>Cognome:</strong> <span id="surname"></span></p>
+        <p><strong>Telefono:</strong> <span id="phone"></span></p>
     </div>
 
     <script>
-        if ("NDEFReader" in window) {
-            let nfcReader = new NDEFReader();
-            nfcReader.scan().then(() => {
-                console.log("Scan NFC iniziato...");
-                nfcReader.onreading = event => {
-                    const decoder = new TextDecoder();
-                    let record = event.message.records[0];
-                    let data = decoder.decode(record.data);
-                    showData(data);
-                };
-            }).catch(error => {
-                console.log("Errore nella scansione NFC:", error);
-            });
-        } else {
-            alert("Il tuo dispositivo non supporta NFC o non è attivo.");
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            document.getElementById("name").innerText = params.get("name") || "N/A";
+            document.getElementById("surname").innerText = params.get("surname") || "N/A";
+            document.getElementById("phone").innerText = params.get("phone") || "N/A";
         }
 
-        function showData(data) {
-            let parts = data.split("|");
-            if (parts.length === 4) {
-                document.getElementById("savedName").innerText = parts[0];
-                document.getElementById("savedSurname").innerText = parts[1];
-                document.getElementById("savedPhone").innerText = parts[2];
-
-                document.getElementById("form").classList.add("hidden");
-                document.getElementById("dataDisplay").classList.remove("hidden");
-                document.getElementById("title").innerText = "Dati del Bracciale NFC";
-            }
-        }
-
-        async function writeNfcTag() {
-            try {
-                let name = document.getElementById("name").value;
-                let surname = document.getElementById("surname").value;
-                let phone = document.getElementById("phone").value;
-                let pin = document.getElementById("pin").value;
-
-                if (!name || !surname || !phone || !pin) {
-                    alert("Compila tutti i campi!");
-                    return;
-                }
-
-                let nfcWriter = new NDEFReader();
-                await nfcWriter.write(`${name}|${surname}|${phone}|${pin}`);
-                alert("Dati salvati con successo sul bracciale NFC!");
-                location.reload();
-            } catch (error) {
-                alert("Errore nella scrittura NFC: " + error);
-            }
-        }
-
-        function requestPin() {
-            document.getElementById("pinRequest").classList.remove("hidden");
-        }
-
-        function checkPin() {
-            let enteredPin = document.getElementById("pinCheck").value;
-            let realPin = document.getElementById("savedPhone").innerText.split("|")[3]; // PIN salvato
-
-            if (enteredPin === realPin) {
-                document.getElementById("pinRequest").classList.add("hidden");
-                document.getElementById("dataDisplay").classList.add("hidden");
-                document.getElementById("form").classList.remove("hidden");
-                document.getElementById("title").innerText = "Modifica i tuoi dati";
-            } else {
-                alert("PIN errato!");
-            }
-        }
+        window.onload = getQueryParams;
     </script>
 
 </body>
